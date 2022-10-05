@@ -17,21 +17,27 @@ const pusher = new Pusher({
     cluster: process.env.REACT_APP_PUSHER_CLUSTER,
     useTLS: process.env.REACT_APP_PUSHER_TLS
 });
-  
-pusher.trigger("my-channel", "my-event", {
-    message: "hello world"
-});
-
 
 const db = mongoose.connection
-
 db.once("open", () => {
     console.log("DB connected!")
-    const msgCollection = db.collection("messagecontent")
+    const msgCollection = db.collection("messagecontents")
     const changeStream = msgCollection.watch()
 
     changeStream.on("change", (change) => {
         console.log(change)
+
+        if (change.operationType === "insert") {
+            const messageDetails = change.fullDocument
+
+            pusher.trigger("messages", "inserted", {
+                name: messageDetails.name,
+                message: messageDetails.message
+            });
+
+        } else {
+            console.log("Error triggering Pusher")
+        }
     })
 })
 
