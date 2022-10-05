@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Messages from "./dbMessages.js"
 import Pusher from "pusher"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import Cors from "cors"
 dotenv.config()
 
 // app config
@@ -43,11 +44,7 @@ db.once("open", () => {
 
 // middleware
 app.use(express.json())
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*")
-    res.setHeader("Access-Control-Allow-Headers", "*")
-    next()
-})
+app.use(Cors())
 
 // DB config
 let connectionUrl = `mongodb+srv://${process.env.REACT_APP_MONGO_DB}:${process.env.REACT_APP_MONGO_PASSWORD}@cluster0.vxakqit.mongodb.net/whatsappDB?retryWrites=true&w=majority`
