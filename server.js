@@ -11,8 +11,11 @@ const port = process.env.PORT || 9000
 // middleware
 
 // DB config
-let connectionUrl = `mongodb+srv://${process.env.REACT_APP_MONGO_DB}:${process.env.REACT_APP_MONGO_PASSWORD}@cluster0.vxakqit.mongodb.net/?retryWrites=true&w=majority`
-console.log(connectionUrl)
+let connectionUrl = `mongodb+srv://${process.env.REACT_APP_MONGO_DB}:${process.env.REACT_APP_MONGO_PASSWORD}@cluster0.vxakqit.mongodb.net/whatsappDB?retryWrites=true&w=majority`
+mongoose.connect(connectionUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
 
 // ??
 
