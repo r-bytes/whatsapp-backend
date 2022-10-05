@@ -2,12 +2,38 @@
 import express from "express";
 import mongoose from "mongoose";
 import Messages from "./dbMessages.js"
+import Pusher from "pusher"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config()
 
 // app config
 const app = express()
 const port = process.env.PORT || 9000
+
+const pusher = new Pusher({
+    appId: process.env.REACT_APP_PUSHER_APPID,
+    key: process.env.REACT_APP_PUSHER_KEY,
+    secret: process.env.REACT_APP_PUSHER_SECRET,
+    cluster: process.env.REACT_APP_PUSHER_CLUSTER,
+    useTLS: process.env.REACT_APP_PUSHER_TLS
+});
+  
+pusher.trigger("my-channel", "my-event", {
+    message: "hello world"
+});
+
+
+const db = mongoose.connection
+
+db.once("open", () => {
+    console.log("DB connected!")
+    const msgCollection = db.collection("messagecontent")
+    const changeStream = msgCollection.watch()
+
+    changeStream.on("change", (change) => {
+        console.log(change)
+    })
+})
 
 // middleware
 app.use(express.json())
