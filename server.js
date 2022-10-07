@@ -111,7 +111,7 @@ app.post("/api/v1/group/new", (req, res) => {
         if (err) {
             res.status(500).send(err)
         } else {
-            res.status(201).send(`New group created \n ${data}`)
+            res.status(201).send(data)
         }
     })
 })
