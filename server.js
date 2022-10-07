@@ -2,6 +2,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import Messages from "./dbMessages.js"
+import Groups from "./dbGroups.js"
 import Pusher from "pusher"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import Cors from "cors"
@@ -25,6 +26,11 @@ db.once("open", () => {
     const msgCollection = db.collection("messagecontents")
     const changeStream = msgCollection.watch()
 
+    const grpCollection = db.collection("groupcontents")
+    const changeStreamGroups = grpCollection.watch()
+
+    console.log(changeStreamGroups)
+
     changeStream.on("change", (change) => {
         console.log(change)
 
@@ -36,6 +42,22 @@ db.once("open", () => {
                 message: messageDetails.message,
                 received: messageDetails.received,
                 timestamp: messageDetails.timestamp
+            });
+
+        } else {
+            console.log("Error triggering Pusher")
+        }
+    })
+
+
+    changeStreamGroups.on("change", (change) => {
+        console.log(change)
+
+        if (change.operationType === "insert") {
+            const groupDetails = change.fullDocument
+
+            pusher.trigger("groups", "inserted", {
+                name: groupDetails.name,
             });
 
         } else {
@@ -59,6 +81,7 @@ mongoose.connect(connectionUrl, {
 
 // API routes
 app.get("/", (req, res) => res.status(200).send("hello friend.."))
+
 app.post("/api/v1/messages/new", (req, res) => {
     const dbMessage = req.body
 
@@ -70,8 +93,31 @@ app.post("/api/v1/messages/new", (req, res) => {
         }
     })
 })
+
 app.get("/api/v1/messages/sync", (req, res) => {
     Messages.find((err, data) => {
+        if (err) {
+            res.status(500).send(err)
+        } else {
+            res.status(200).send(data)
+        }
+    })
+})
+
+app.post("/api/v1/group/new", (req, res) => {
+    const dbGroup = req.body
+
+    Groups.create(dbGroup, (err, data) => {
+        if (err) {
+            res.status(500).send(err)
+        } else {
+            res.status(201).send(`New group created \n ${data}`)
+        }
+    })
+})
+
+app.get("/api/v1/groups/sync", (req, res) => {
+    Groups.find((err, data) => {
         if (err) {
             res.status(500).send(err)
         } else {
